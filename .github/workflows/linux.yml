@@ -33,6 +33,7 @@ jobs:
 
       - name: Build all
         run: |
+          lrelease *.pro
           qmake -spec linux-g++
           make -j8 
 

@@ -33,6 +33,7 @@ jobs:
 
       - name: Build all
         run: |
+          lrelease *.pro
           qmake -makefile
           make
 
@@ -64,6 +65,7 @@ jobs:
 
       - name: Build all
         run: |
+          lrelease *.pro
           qmake -makefile
           make
           cp libcharactercode.dylib libcharactercode.arm64.dylib
