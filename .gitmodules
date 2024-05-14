@@ -1,0 +1,3 @@
+[submodule "plugininterface"]
+	path = plugininterface
+	url = https://github.com/QuardCRT-platform/plugininterface.git

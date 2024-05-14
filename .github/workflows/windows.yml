@@ -1,0 +1,75 @@
+name: windows
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          arch: win64_mingw
+          version: '6.5.3'
+          aqtversion: ==3.1.7
+
+      - name: Build all
+        run: |
+          qmake -spec win32-g++
+          mingw32-make -j8
+
+      - name: Upload build asserts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libhelloworld_mingw
+          path: |
+            ./release/helloworld.dll
+
+  windows_msvc2019:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+    
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          arch: 'win64_msvc2019_64'
+          version: '6.5.3'
+          aqtversion: '==3.1.7'
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+          toolset: 14.29
+
+      - name: Build all
+        run: |
+          c:/Windows/system32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -File "./tools/replacer.ps1" -cc_info "msvc" -tpath ./plugininterface/plugininterface.json.temp -opath ./plugininterface/plugininterface.json
+          qmake helloworld.pro -tp vc
+          msbuild helloworld.vcxproj /p:Configuration=Release /p:Platform=x64 /p:BuildInParallel=false
+          cp ./release/helloworld.dll ./release/helloworld.msvc.dll
+
+      - name: Upload build asserts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libhelloworld_msvc
+          path: |
+            ./release/helloworld.msvc.dll
