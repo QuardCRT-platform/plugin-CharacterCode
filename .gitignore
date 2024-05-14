@@ -77,5 +77,6 @@ CMakeLists.txt.user*
 
 *build-*
 build_*
+build
 .vscode
 moc_predefs.h

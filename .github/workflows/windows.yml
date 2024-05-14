@@ -35,9 +35,9 @@ jobs:
       - name: Upload build asserts
         uses: actions/upload-artifact@v4
         with:
-          name: libhelloworld_mingw
+          name: libcharactercode_mingw
           path: |
-            ./release/helloworld.dll
+            ./release/charactercode.dll
 
   windows_msvc2019:
     runs-on: windows-2022
@@ -63,13 +63,13 @@ jobs:
       - name: Build all
         run: |
           c:/Windows/system32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -File "./tools/replacer.ps1" -cc_info "msvc" -tpath ./plugininterface/plugininterface.json.temp -opath ./plugininterface/plugininterface.json
-          qmake helloworld.pro -tp vc
-          msbuild helloworld.vcxproj /p:Configuration=Release /p:Platform=x64 /p:BuildInParallel=false
-          cp ./release/helloworld.dll ./release/helloworld.msvc.dll
+          qmake charactercode.pro -tp vc
+          msbuild charactercode.vcxproj /p:Configuration=Release /p:Platform=x64 /p:BuildInParallel=false
+          cp ./release/charactercode.dll ./release/charactercode.msvc.dll
 
       - name: Upload build asserts
         uses: actions/upload-artifact@v4
         with:
-          name: libhelloworld_msvc
+          name: libcharactercode_msvc
           path: |
-            ./release/helloworld.msvc.dll
+            ./release/charactercode.msvc.dll

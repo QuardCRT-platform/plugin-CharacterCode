@@ -39,9 +39,9 @@ jobs:
       - name: Upload build asserts
         uses: actions/upload-artifact@v4
         with:
-          name: libhelloworld
+          name: libcharactercode
           path: |
-            ./libhelloworld.dylib
+            ./libcharactercode.dylib
 
   macos_arm64:
     runs-on: macos-14
@@ -66,12 +66,12 @@ jobs:
         run: |
           qmake -makefile
           make
-          cp libhelloworld.dylib libhelloworld.arm64.dylib
+          cp libcharactercode.dylib libcharactercode.arm64.dylib
 
       - name: Upload build asserts
         uses: actions/upload-artifact@v4
         with:
-          name: libhelloworld_arm64
+          name: libcharactercode_arm64
           path: |
-            ./libhelloworld.arm64.dylib
+            ./libcharactercode.arm64.dylib
           

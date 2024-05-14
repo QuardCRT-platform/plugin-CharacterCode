@@ -5,11 +5,11 @@ QT += core widgets
 INCLUDEPATH += $$PWD/plugininterface \
         $$PWD
 HEADERS = plugininterface/plugininterface.h \
-        helloworld.h
+        charactercode.h
 SOURCES = plugininterface/plugininterface.cpp \
-        helloworld.cpp
+        charactercode.cpp
 
-TARGET = $$qtLibraryTarget(helloworld)
+TARGET = $$qtLibraryTarget(charactercode)
 
 win32:{
     build_info.commands = $$quote("c:/Windows/system32/WindowsPowerShell/v1.0/powershell.exe -ExecutionPolicy Bypass -NoLogo -NoProfile -File \"$$PWD/tools/replacer.ps1\" -cc_info $$QMAKE_CXX -tpath $$PWD/plugininterface/plugininterface.json.temp -opath $$PWD/plugininterface/plugininterface.json")
