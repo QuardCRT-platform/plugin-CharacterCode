@@ -8,6 +8,9 @@ HEADERS = plugininterface/plugininterface.h \
         charactercode.h
 SOURCES = plugininterface/plugininterface.cpp \
         charactercode.cpp
+TRANSLATIONS = charactercode_zh_CN.ts \
+        charactercode_en_US.ts
+RESOURCES = charactercode.qrc
 
 TARGET = $$qtLibraryTarget(charactercode)
 

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/lang">
+        <file>charactercode_zh_CN.qm</file>
+        <file>charactercode_en_US.qm</file>
+    </qresource>
+</RCC>

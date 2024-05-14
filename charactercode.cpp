@@ -2,6 +2,7 @@
 #include "charactercode.h"
 
 #include <QApplication>
+#include <QTranslator>
 #include <QClipboard>
 #include <QMap>
 #include <QMessageBox>
@@ -147,4 +148,30 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
     }
 
     return actions;
+}
+
+void CharacterCode::setLanguage(const QLocale &language,QApplication *app) {
+    static QTranslator *qtTranslator = nullptr;
+    if(qtTranslator == nullptr) {
+        qtTranslator = new QTranslator(app);
+    } else {
+        app->removeTranslator(qtTranslator);
+        delete qtTranslator;
+        qtTranslator = new QTranslator(app);
+    }
+    switch(language.language()) {
+    case QLocale::Chinese:
+        if(qtTranslator->load(":/lang/charactercode_zh_CN.qm"))
+            app->installTranslator(qtTranslator);
+        break;
+    default:
+    case QLocale::English:
+        if(qtTranslator->load(":/lang/charactercode_en_US.qm"))
+            app->installTranslator(qtTranslator);
+        break;
+    }
+}
+
+void CharacterCode::retranslateUi() {
+    m_action->setText(tr("Character Code"));
 }
