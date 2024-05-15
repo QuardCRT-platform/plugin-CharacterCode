@@ -6,14 +6,50 @@
 #include <QClipboard>
 #include <QMap>
 #include <QMessageBox>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QRadioButton>
+#include <QDialogButtonBox>
+#include <QTimer>
 #include <QDebug>
 
 int CharacterCode::init(QMap<QString, QString> params, QWidget *parent)
 {
     m_action = new QAction(tr("Character Code"), parent);
-    connect(m_action, &QAction::triggered, [parent](){
-        QMessageBox::information(parent, tr("Character Code"), tr("Character Code Plugin"));
+    connect(m_action, &QAction::triggered, [&,parent](){
+        QDialog dialog(parent);
+        dialog.setWindowTitle(tr("Character Code"));
+        QVBoxLayout *layout = new QVBoxLayout(&dialog);
+        QRadioButton *msbRadio = new QRadioButton(tr("Most Significant Byte First"), &dialog);
+        QRadioButton *lsbRadio = new QRadioButton(tr("Least Significant Byte First"), &dialog);
+        if(utf8BytesOrderMsB) {
+            msbRadio->setChecked(true);
+        } else {
+            lsbRadio->setChecked(true);
+        }
+        layout->addWidget(msbRadio);
+        layout->addWidget(lsbRadio);
+        QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+        layout->addWidget(buttonBox);
+        connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+        connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+        if(dialog.exec() == QDialog::Accepted) {
+            utf8BytesOrderMsB = msbRadio->isChecked();
+            emit writeSettings("CharacterCode","BytesOrderMsB", QVariant::fromValue(utf8BytesOrderMsB));
+        }
     });
+
+    QTimer::singleShot(10,this,[&](){
+        QVariant bytesOrderMsBVariant;
+        emit readSettings("CharacterCode","BytesOrderMsB", bytesOrderMsBVariant);
+        if(bytesOrderMsBVariant.isValid()) {
+            utf8BytesOrderMsB = bytesOrderMsBVariant.toBool();
+        } else {
+            utf8BytesOrderMsB = true;
+            emit writeSettings("CharacterCode","BytesOrderMsB", QVariant::fromValue(utf8BytesOrderMsB));
+        }
+    });
+
     Q_UNUSED(params);
 
     return 0;
@@ -71,16 +107,19 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
         QString utf8Text;
         for(int i = 0; i < selectedText.length(); i++)
         {
-            uint32_t c = selectedText.at(i).unicode();
-            if(c<0x80) {
-                utf8Text += QString("0x%1 ").arg(c, 0, 16);
-            } else if(c<0x800) {
-                utf8Text += QString("0x%2%1 ").arg(0xC0 | (c >> 6), 2, 16, QChar('0')).arg(0x80 | (c & 0x3F), 2, 16, QChar('0'));
-            } else if(c<0x10000) {
-                utf8Text += QString("0x%3%2%1 ").arg(0xE0 | (c >> 12), 2, 16, QChar('0')).arg(0x80 | ((c >> 6) & 0x3F), 2, 16, QChar('0')).arg(0x80 | (c & 0x3F), 2, 16, QChar('0'));
+            QString utf8(selectedText.at(i));
+            QByteArray utf8Bytes = utf8.toUtf8();
+            QString utf8BytesStr;
+            if(utf8BytesOrderMsB) {
+                for(int j = 0; j < utf8Bytes.length(); j++) {
+                    utf8BytesStr += QString("%1").arg((uint8_t)utf8Bytes.at(j), 0, 16);
+                }
             } else {
-                utf8Text += QString("0x%4%3%2%1 ").arg(0xF0 | (c >> 18), 2, 16, QChar('0')).arg(0x80 | ((c >> 12) & 0x3F), 2, 16, QChar('0')).arg(0x80 | ((c >> 6) & 0x3F), 2, 16, QChar('0')).arg(0x80 | (c & 0x3F), 2, 16, QChar('0'));
+                for(int j = utf8Bytes.length()-1; j >= 0; j--) {
+                    utf8BytesStr += QString("%1").arg((uint8_t)utf8Bytes.at(j), 0, 16);
+                }
             }
+            utf8Text += QString("0x%1 ").arg(utf8BytesStr);
         }
         if(!utf8Text.isEmpty()) {
             QApplication::clipboard()->setText(utf8Text);
@@ -89,40 +128,57 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
         }
     });
 
-    // check selectedText is number or not
-    bool isUIntNumber = false;
-    uint32_t number = 0;
+    bool isUInt64Number = false;
+    uint64_t number = 0;
     if(selectedText.startsWith("0x")) {
         QString testText = selectedText.mid(2);
-        number = testText.toUInt(&isUIntNumber,16);
+        number = testText.toULongLong(&isUInt64Number,16);
     } else if(selectedText.startsWith("\\u")) {
         QString testText = selectedText.mid(2);
-        number = testText.toUInt(&isUIntNumber,16);
+        number = testText.toULongLong(&isUInt64Number,16);
+    } else if(selectedText.startsWith("u")) {
+        QString testText = selectedText.mid(1);
+        number = testText.toULongLong(&isUInt64Number,16);
     } else {
-        number = selectedText.toUInt(&isUIntNumber,10);
+        number = selectedText.toULongLong(&isUInt64Number,10);
     }
-    if(isUIntNumber) {
+    if(isUInt64Number) {
         if(number<=127) {
             QAction *showASCIIAction = new QAction(tr("Show ASCII"), parentMenu);
             actions.append(showASCIIAction);
             connect(showASCIIAction, &QAction::triggered, [=](){
-                QMessageBox::information(parentMenu, tr("Show ASCII"), QString("%1").arg(QChar(number).toLatin1()));
+                QMessageBox::information(parentMenu, tr("Show ASCII"), QString("%1").arg(QChar((uint8_t)number).toLatin1()));
             });
         }
         if(number<=0xffff) {
             QAction *showUnicodeAction = new QAction(tr("Show Unicode"), parentMenu);
             actions.append(showUnicodeAction);
             connect(showUnicodeAction, &QAction::triggered, [=](){
-                QMessageBox::information(parentMenu, tr("Show Unicode"), QString("%1").arg(QChar(number)));
+                QMessageBox::information(parentMenu, tr("Show Unicode"), QString("%1").arg(QChar((uint16_t)number)));
             });
         }
         QAction *showUTF8Action = new QAction(tr("Show UTF-8"), parentMenu);
         actions.append(showUTF8Action);
         connect(showUTF8Action, &QAction::triggered, [=](){
-            char utf8[5];
-            memset(utf8,0,5);
-            memcpy(utf8,&number,4);
-            QMessageBox::information(parentMenu, tr("Show UTF-8"), QString::fromUtf8(utf8));
+            QByteArray utf8Bytes;
+            if(utf8BytesOrderMsB) {
+                for(int i = 0; i < 8; i++) {
+                    uint8_t byte = (uint8_t)(number>>(8*(7-i)));
+                    if(byte == 0) {
+                        continue;
+                    }
+                    utf8Bytes.append(byte);
+                }
+            } else {
+                for(int i = 0; i < 8; i++) {
+                    uint8_t byte = (uint8_t)(number>>(8*i));
+                    if(byte == 0) {
+                        continue;
+                    }
+                    utf8Bytes.append(byte);
+                }
+            }
+            QMessageBox::information(parentMenu, tr("Show UTF-8"), QString::fromUtf8(utf8Bytes));
         });
     } else {
         bool isFloatNumber = false;

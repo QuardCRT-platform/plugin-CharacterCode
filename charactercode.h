@@ -34,6 +34,7 @@ public:
 
 private:
     QAction *m_action;
+    bool utf8BytesOrderMsB = true;
 };
 
 #endif /* CHARACTERCODE_H_ */
