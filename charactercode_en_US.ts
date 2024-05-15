@@ -4,79 +4,84 @@
 <context>
     <name>CharacterCode</name>
     <message>
-        <location filename="charactercode.cpp" line="13"/>
-        <location filename="charactercode.cpp" line="15"/>
-        <location filename="charactercode.cpp" line="176"/>
+        <location filename="charactercode.cpp" line="18"/>
+        <location filename="charactercode.cpp" line="21"/>
+        <location filename="charactercode.cpp" line="232"/>
         <source>Character Code</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="15"/>
-        <source>Character Code Plugin</source>
+        <location filename="charactercode.cpp" line="23"/>
+        <source>Most Significant Byte First</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="30"/>
-        <location filename="charactercode.cpp" line="47"/>
-        <location filename="charactercode.cpp" line="50"/>
+        <location filename="charactercode.cpp" line="24"/>
+        <source>Least Significant Byte First</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="charactercode.cpp" line="66"/>
+        <location filename="charactercode.cpp" line="83"/>
+        <location filename="charactercode.cpp" line="86"/>
         <source>Copy to ASCII</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="47"/>
+        <location filename="charactercode.cpp" line="83"/>
         <source>Some characters are not ASCII</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="50"/>
+        <location filename="charactercode.cpp" line="86"/>
         <source>No ASCII character found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="53"/>
-        <location filename="charactercode.cpp" line="65"/>
+        <location filename="charactercode.cpp" line="89"/>
+        <location filename="charactercode.cpp" line="101"/>
         <source>Copy to Unicode</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="65"/>
-        <location filename="charactercode.cpp" line="88"/>
+        <location filename="charactercode.cpp" line="101"/>
+        <location filename="charactercode.cpp" line="127"/>
         <source>No character found</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="68"/>
-        <location filename="charactercode.cpp" line="88"/>
+        <location filename="charactercode.cpp" line="104"/>
+        <location filename="charactercode.cpp" line="127"/>
         <source>Copy to UTF-8</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="106"/>
-        <location filename="charactercode.cpp" line="109"/>
+        <location filename="charactercode.cpp" line="147"/>
+        <location filename="charactercode.cpp" line="150"/>
         <source>Show ASCII</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="113"/>
-        <location filename="charactercode.cpp" line="116"/>
+        <location filename="charactercode.cpp" line="154"/>
+        <location filename="charactercode.cpp" line="157"/>
         <source>Show Unicode</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="119"/>
-        <location filename="charactercode.cpp" line="125"/>
+        <location filename="charactercode.cpp" line="160"/>
+        <location filename="charactercode.cpp" line="181"/>
         <source>Show UTF-8</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="131"/>
-        <location filename="charactercode.cpp" line="135"/>
+        <location filename="charactercode.cpp" line="187"/>
+        <location filename="charactercode.cpp" line="191"/>
         <source>Show Float Hex</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="141"/>
-        <location filename="charactercode.cpp" line="145"/>
+        <location filename="charactercode.cpp" line="197"/>
+        <location filename="charactercode.cpp" line="201"/>
         <source>Show Double Hex</source>
         <translation></translation>
     </message>
