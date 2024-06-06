@@ -10,6 +10,7 @@
 #include <QVBoxLayout>
 #include <QRadioButton>
 #include <QDialogButtonBox>
+#include <QLocale>
 #include <QTimer>
 #include <QDebug>
 
@@ -128,6 +129,7 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
         }
     });
 
+    QLocale locale;
     bool isUInt64Number = false;
     uint64_t number = 0;
     if(selectedText.startsWith("0x")) {
@@ -141,6 +143,9 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
         number = testText.toULongLong(&isUInt64Number,16);
     } else {
         number = selectedText.toULongLong(&isUInt64Number,10);
+        if(!isUInt64Number) {
+            number = locale.toULongLong(selectedText,&isUInt64Number);
+        }
     }
     if(isUInt64Number) {
         if(number<=127) {
@@ -183,6 +188,9 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
     } else {
         bool isFloatNumber = false;
         float fnumber = selectedText.toFloat(&isFloatNumber);
+        if(!isFloatNumber) {
+            fnumber = locale.toFloat(selectedText,&isFloatNumber);
+        }
         if(isFloatNumber) {
             QAction *showFloatHexAction = new QAction(tr("Show Float Hex"), parentMenu);
             actions.append(showFloatHexAction);
@@ -193,6 +201,9 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
         }
         bool isDoubleNumber = false;
         double dnumber = selectedText.toDouble(&isDoubleNumber);
+        if(!isDoubleNumber) {
+            dnumber = locale.toFloat(selectedText,&isDoubleNumber);
+        }
         if(isDoubleNumber) {
             QAction *showDoubleHexAction = new QAction(tr("Show Double Hex"), parentMenu);
             actions.append(showDoubleHexAction);
