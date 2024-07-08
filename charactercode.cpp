@@ -12,6 +12,8 @@
 #include <QDialogButtonBox>
 #include <QLocale>
 #include <QTimer>
+#include <QFile>
+#include <QFileInfo>
 #include <QDebug>
 
 int CharacterCode::init(QMap<QString, QString> params, QWidget *parent)
@@ -128,6 +130,41 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
             QMessageBox::information(parentMenu, tr("Copy to UTF-8"), tr("No character found"));
         }
     });
+
+    QAction *copyToBase64Action = new QAction(tr("Copy to Base64"), parentMenu);
+    actions.append(copyToBase64Action);
+    connect(copyToBase64Action, &QAction::triggered, [=](){
+        QApplication::clipboard()->setText(selectedText.toUtf8().toBase64(QByteArray::Base64UrlEncoding|QByteArray::KeepTrailingEquals));
+    });
+    QByteArray base64Bytes = QByteArray::fromBase64(selectedText.toUtf8(),QByteArray::Base64UrlEncoding|QByteArray::KeepTrailingEquals|QByteArray::AbortOnBase64DecodingErrors);
+    if(!base64Bytes.isEmpty()) {
+        QAction *copyFromBase64Action = new QAction(tr("Copy from Base64"), parentMenu);
+        actions.append(copyFromBase64Action);
+        connect(copyFromBase64Action, &QAction::triggered, [=](){
+            QApplication::clipboard()->setText(QString::fromUtf8(base64Bytes));
+        });
+    }
+    QFileInfo fileInfo(selectedText);
+    if(fileInfo.exists()) {
+        QAction *copyToBase64FileAction = new QAction(tr("Copy to Base64 (File)"), parentMenu);
+        actions.append(copyToBase64FileAction);
+        connect(copyToBase64FileAction, &QAction::triggered, [=](){
+            QFile file(selectedText);
+            QFileInfo fileInfo(file);
+            if(fileInfo.size() > 8*1024) {
+                int ret = QMessageBox::question(parentMenu, tr("Copy to Base64 (File)"), tr("The file is too large, continue?"), QMessageBox::Yes|QMessageBox::No);
+                if(ret != QMessageBox::Yes) {
+                    return;
+                }
+            }
+            if(file.open(QIODevice::ReadOnly)) {
+                QByteArray fileData = file.readAll();
+                file.close();
+                QByteArray fileBase64Data = fileData.toBase64(QByteArray::Base64UrlEncoding|QByteArray::KeepTrailingEquals);
+                QApplication::clipboard()->setText(fileBase64Data);
+            }
+        });
+    }
 
     QLocale locale;
     bool isUInt64Number = false;
