@@ -8,12 +8,15 @@
 #include <QMessageBox>
 #include <QDialog>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QRadioButton>
 #include <QDialogButtonBox>
 #include <QLocale>
+#include <QGroupBox>
 #include <QTimer>
 #include <QFile>
 #include <QFileInfo>
+#include <QFileDialog>
 #include <QDebug>
 
 int CharacterCode::init(QMap<QString, QString> params, QWidget *parent)
@@ -23,6 +26,7 @@ int CharacterCode::init(QMap<QString, QString> params, QWidget *parent)
         QDialog dialog(parent);
         dialog.setWindowTitle(tr("Character Code"));
         QVBoxLayout *layout = new QVBoxLayout(&dialog);
+        QGroupBox *bytesOrdergroupBox = new QGroupBox(tr("UTF-8 Bytes Order"), &dialog);
         QRadioButton *msbRadio = new QRadioButton(tr("Most Significant Byte First"), &dialog);
         QRadioButton *lsbRadio = new QRadioButton(tr("Least Significant Byte First"), &dialog);
         if(utf8BytesOrderMsB) {
@@ -30,15 +34,33 @@ int CharacterCode::init(QMap<QString, QString> params, QWidget *parent)
         } else {
             lsbRadio->setChecked(true);
         }
-        layout->addWidget(msbRadio);
-        layout->addWidget(lsbRadio);
+        QHBoxLayout *bytesOrderLayout = new QHBoxLayout;
+        bytesOrderLayout->addWidget(msbRadio);
+        bytesOrderLayout->addWidget(lsbRadio);
+        bytesOrdergroupBox->setLayout(bytesOrderLayout);
+        layout->addWidget(bytesOrdergroupBox);
+        QGroupBox *base64groupBox = new QGroupBox(tr("Base64 Encoding"), &dialog);
+        QRadioButton *base64Radio = new QRadioButton(tr("Base64"), &dialog);
+        QRadioButton *base64urlRadio = new QRadioButton(tr("Base64 URL"), &dialog);
+        if(base64) {
+            base64Radio->setChecked(true);
+        } else {
+            base64urlRadio->setChecked(true);
+        }
+        QHBoxLayout *base64Layout = new QHBoxLayout;
+        base64Layout->addWidget(base64Radio);
+        base64Layout->addWidget(base64urlRadio);
+        base64groupBox->setLayout(base64Layout);
+        layout->addWidget(base64groupBox);
         QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
         layout->addWidget(buttonBox);
         connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
         connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
         if(dialog.exec() == QDialog::Accepted) {
             utf8BytesOrderMsB = msbRadio->isChecked();
+            base64 = base64Radio->isChecked();
             emit writeSettings("CharacterCode","BytesOrderMsB", QVariant::fromValue(utf8BytesOrderMsB));
+            emit writeSettings("CharacterCode","Base64", QVariant::fromValue(base64));
         }
     });
 
@@ -50,6 +72,14 @@ int CharacterCode::init(QMap<QString, QString> params, QWidget *parent)
         } else {
             utf8BytesOrderMsB = true;
             emit writeSettings("CharacterCode","BytesOrderMsB", QVariant::fromValue(utf8BytesOrderMsB));
+        }
+        QVariant base64Variant;
+        emit readSettings("CharacterCode","Base64", bytesOrderMsBVariant);
+        if(base64Variant.isValid()) {
+            base64 = base64Variant.toBool();
+        } else {
+            base64 = true;
+            emit writeSettings("CharacterCode","Base64", QVariant::fromValue(base64));
         }
     });
 
@@ -131,19 +161,12 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
         }
     });
 
+    QByteArray::Base64Options base64Type = base64 ? QByteArray::Base64Encoding : QByteArray::Base64UrlEncoding;
     QAction *copyToBase64Action = new QAction(tr("Copy to Base64"), parentMenu);
     actions.append(copyToBase64Action);
     connect(copyToBase64Action, &QAction::triggered, [=](){
-        QApplication::clipboard()->setText(selectedText.toUtf8().toBase64(QByteArray::Base64UrlEncoding|QByteArray::KeepTrailingEquals));
+        QApplication::clipboard()->setText(selectedText.toUtf8().toBase64(base64Type|QByteArray::KeepTrailingEquals));
     });
-    QByteArray base64Bytes = QByteArray::fromBase64(selectedText.toUtf8(),QByteArray::Base64UrlEncoding|QByteArray::KeepTrailingEquals|QByteArray::AbortOnBase64DecodingErrors);
-    if(!base64Bytes.isEmpty()) {
-        QAction *copyFromBase64Action = new QAction(tr("Copy from Base64"), parentMenu);
-        actions.append(copyFromBase64Action);
-        connect(copyFromBase64Action, &QAction::triggered, [=](){
-            QApplication::clipboard()->setText(QString::fromUtf8(base64Bytes));
-        });
-    }
     QFileInfo fileInfo(selectedText);
     if(fileInfo.exists()) {
         QAction *copyToBase64FileAction = new QAction(tr("Copy to Base64 (File)"), parentMenu);
@@ -160,8 +183,28 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
             if(file.open(QIODevice::ReadOnly)) {
                 QByteArray fileData = file.readAll();
                 file.close();
-                QByteArray fileBase64Data = fileData.toBase64(QByteArray::Base64UrlEncoding|QByteArray::KeepTrailingEquals);
+                QByteArray fileBase64Data = fileData.toBase64(base64Type|QByteArray::KeepTrailingEquals);
                 QApplication::clipboard()->setText(fileBase64Data);
+            }
+        });
+    }
+    QByteArray base64Bytes = QByteArray::fromBase64(selectedText.toUtf8(),base64Type|QByteArray::KeepTrailingEquals|QByteArray::AbortOnBase64DecodingErrors);
+    if(!base64Bytes.isEmpty()) {
+        QAction *copyFromBase64Action = new QAction(tr("Copy from Base64"), parentMenu);
+        actions.append(copyFromBase64Action);
+        connect(copyFromBase64Action, &QAction::triggered, [=](){
+            QApplication::clipboard()->setText(QString::fromUtf8(base64Bytes));
+        });
+        QAction *saveFileFromBase64Action = new QAction(tr("Save File from Base64"), parentMenu);
+        actions.append(saveFileFromBase64Action);
+        connect(saveFileFromBase64Action, &QAction::triggered, [=](){
+            QString saveFileName = QFileDialog::getSaveFileName(parentMenu, tr("Save File from Base64"), QString(), tr("All Files (*)"));
+            if(!saveFileName.isEmpty()) {
+                QFile file(saveFileName);
+                if(file.open(QIODevice::WriteOnly)) {
+                    file.write(base64Bytes);
+                    file.close();
+                }
             }
         });
     }
