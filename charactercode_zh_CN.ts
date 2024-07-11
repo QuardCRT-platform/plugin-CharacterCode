@@ -6,13 +6,9 @@
     <message>
         <location filename="charactercode.cpp" line="24"/>
         <location filename="charactercode.cpp" line="27"/>
-        <location filename="charactercode.cpp" line="323"/>
+        <location filename="charactercode.cpp" line="447"/>
         <source>Character Code</source>
         <translation>字符编码</translation>
-    </message>
-    <message>
-        <source>Character Code Plugin</source>
-        <translation>字符编码插件</translation>
     </message>
     <message>
         <location filename="charactercode.cpp" line="29"/>
@@ -112,32 +108,38 @@
         <translation>所有文件(*)</translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="232"/>
-        <location filename="charactercode.cpp" line="235"/>
+        <location filename="charactercode.cpp" line="243"/>
+        <location filename="charactercode.cpp" line="246"/>
+        <location filename="charactercode.cpp" line="368"/>
+        <location filename="charactercode.cpp" line="375"/>
         <source>Show ASCII</source>
         <translation>以ASCII字符展示</translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="239"/>
-        <location filename="charactercode.cpp" line="242"/>
+        <location filename="charactercode.cpp" line="250"/>
+        <location filename="charactercode.cpp" line="253"/>
+        <location filename="charactercode.cpp" line="379"/>
+        <location filename="charactercode.cpp" line="386"/>
         <source>Show Unicode</source>
         <translation>以Unicode码字符展示</translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="245"/>
-        <location filename="charactercode.cpp" line="266"/>
+        <location filename="charactercode.cpp" line="256"/>
+        <location filename="charactercode.cpp" line="277"/>
+        <location filename="charactercode.cpp" line="389"/>
+        <location filename="charactercode.cpp" line="416"/>
         <source>Show UTF-8</source>
         <translation>以UTF-8编码字符展示</translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="275"/>
-        <location filename="charactercode.cpp" line="279"/>
+        <location filename="charactercode.cpp" line="286"/>
+        <location filename="charactercode.cpp" line="290"/>
         <source>Show Float Hex</source>
         <translation>展示单精度浮点数HEX值</translation>
     </message>
     <message>
-        <location filename="charactercode.cpp" line="288"/>
-        <location filename="charactercode.cpp" line="292"/>
+        <location filename="charactercode.cpp" line="299"/>
+        <location filename="charactercode.cpp" line="303"/>
         <source>Show Double Hex</source>
         <translation>展示双精度浮点数HEX值</translation>
     </message>

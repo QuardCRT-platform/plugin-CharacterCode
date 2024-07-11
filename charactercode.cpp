@@ -209,24 +209,35 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
         });
     }
 
-    QLocale locale;
-    bool isUInt64Number = false;
-    uint64_t number = 0;
-    if(selectedText.startsWith("0x")) {
-        QString testText = selectedText.mid(2);
-        number = testText.toULongLong(&isUInt64Number,16);
-    } else if(selectedText.startsWith("\\u")) {
-        QString testText = selectedText.mid(2);
-        number = testText.toULongLong(&isUInt64Number,16);
-    } else if(selectedText.startsWith("u")) {
-        QString testText = selectedText.mid(1);
-        number = testText.toULongLong(&isUInt64Number,16);
-    } else {
-        number = selectedText.toULongLong(&isUInt64Number,10);
-        if(!isUInt64Number) {
-            number = locale.toULongLong(selectedText,&isUInt64Number);
+    auto checkStringNum = [](const QString &text, bool *isNumber) -> uint64_t {
+        QLocale locale;
+        if(text.startsWith("0x")) {                      // hex 0xhh
+            QString testText = text.mid(2);
+            return testText.toULongLong(isNumber,16);
+        }else if(text.startsWith("\\u")) {              // unicode \uhhhh
+            QString testText = text.mid(2);
+            return testText.toULongLong(isNumber,16);
+        } else if(text.startsWith("\\")) {               // dec \nnn
+            QString testText = text.mid(1);
+            return testText.toULongLong(isNumber,10);
+        } else if(text.startsWith("u")) {                // unicode uhhhh
+            QString testText = text.mid(1);
+            return testText.toULongLong(isNumber,16);
+        } else {                                         // dec nnn
+            return text.toULongLong(isNumber,10);
+            if(!isNumber) {                              // dec(locale) nnn
+                return locale.toULongLong(text,isNumber);
+            }
         }
-    }
+        *isNumber = false;
+        return 0;
+    };
+
+    // single character
+    bool isUInt64Number = false;
+    bool isFloatNumber = false;
+    bool isDoubleNumber = false;
+    uint64_t number = checkStringNum(selectedText, &isUInt64Number);
     if(isUInt64Number) {
         if(number<=127) {
             QAction *showASCIIAction = new QAction(tr("Show ASCII"), parentMenu);
@@ -266,9 +277,9 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
             QMessageBox::information(parentMenu, tr("Show UTF-8"), QString::fromUtf8(utf8Bytes));
         });
     } else {
-        bool isFloatNumber = false;
         float fnumber = selectedText.toFloat(&isFloatNumber);
         if(!isFloatNumber) {
+            QLocale locale;
             fnumber = locale.toFloat(selectedText,&isFloatNumber);
         }
         if(isFloatNumber) {
@@ -279,9 +290,9 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
                 QMessageBox::information(parentMenu, tr("Show Float Hex"), QString("0x%1").arg(*p, 0, 16));
             });
         }
-        bool isDoubleNumber = false;
         double dnumber = selectedText.toDouble(&isDoubleNumber);
         if(!isDoubleNumber) {
+            QLocale locale;
             dnumber = locale.toFloat(selectedText,&isDoubleNumber);
         }
         if(isDoubleNumber) {
@@ -290,6 +301,119 @@ QList<QAction *> CharacterCode::terminalContextAction(QString selectedText, QStr
             connect(showDoubleHexAction, &QAction::triggered, [=](){
                 uint64_t *p = (uint64_t *)&dnumber;
                 QMessageBox::information(parentMenu, tr("Show Double Hex"), QString("0x%1").arg(*p, 0, 16));
+            });
+        }
+    }
+
+    auto tryParseNumberList = [checkStringNum](const QString &text, QList<uint64_t> &numberList) -> bool {
+        bool isNumber = false;
+        QList<QString> strList = text.split(" ",Qt::SkipEmptyParts);
+        if(strList.isEmpty()) {
+            return false;
+        }
+        if(strList.size() == 1) {
+            return false;
+        }
+        foreach(QString str, strList) {
+            uint64_t number = checkStringNum(str, &isNumber);
+            if(isNumber) {
+                numberList.append(number);
+            } else {
+                break;
+            }
+        }
+        return isNumber && numberList.size() == strList.size();
+    };
+    // multiple characters
+    if(!(isUInt64Number || isFloatNumber || isDoubleNumber)) {
+        QList<uint64_t> unmberList;
+        bool isNumber = tryParseNumberList(selectedText, unmberList);
+        if(!isNumber) {
+            unmberList.clear();
+            QString selectedTextUpdate = selectedText;
+            selectedTextUpdate.replace("0x"," 0x");
+            isNumber = tryParseNumberList(selectedTextUpdate, unmberList);
+            if(!isNumber) {
+                unmberList.clear();
+                selectedTextUpdate = selectedText;
+                selectedTextUpdate.replace("\\"," \\");
+                isNumber = tryParseNumberList(selectedTextUpdate, unmberList);
+                if(!isNumber) {
+                    unmberList.clear();
+                    selectedTextUpdate = selectedText;
+                    selectedTextUpdate.replace("u"," u");
+                    isNumber = tryParseNumberList(selectedTextUpdate, unmberList);
+                    if(!isNumber) {
+                        unmberList.clear();
+                        selectedTextUpdate = selectedText;
+                        selectedTextUpdate.replace("\\u"," \\u");
+                        isNumber = tryParseNumberList(selectedTextUpdate, unmberList);
+                    }
+                }
+            }
+        }
+
+        if(isNumber){
+            bool isAllASCII = true;
+            bool isAllUnicode = true;
+            foreach(uint64_t number, unmberList) { 
+                if(number>127) {
+                    isAllASCII = false;
+                }
+                if(number>0xffff) {
+                    isAllUnicode = false;
+                }
+            }
+            if(isAllASCII) {
+                QAction *showASCIIAction = new QAction(tr("Show ASCII"), parentMenu);
+                actions.append(showASCIIAction);
+                connect(showASCIIAction, &QAction::triggered, [=](){
+                    QString asciiText;
+                    foreach(uint64_t number, unmberList) {
+                        asciiText += QString("%1").arg(QChar((uint8_t)number).toLatin1());
+                    }
+                    QMessageBox::information(parentMenu, tr("Show ASCII"), asciiText);
+                });
+            }
+            if(isAllUnicode) {
+                QAction *showUnicodeAction = new QAction(tr("Show Unicode"), parentMenu);
+                actions.append(showUnicodeAction);
+                connect(showUnicodeAction, &QAction::triggered, [=](){
+                    QString unicodeText;
+                    foreach(uint64_t number, unmberList) {
+                        unicodeText += QString("%1").arg(QChar((uint16_t)number));
+                    }
+                    QMessageBox::information(parentMenu, tr("Show Unicode"), unicodeText);
+                });
+            }
+            QAction *showUTF8Action = new QAction(tr("Show UTF-8"), parentMenu);
+            actions.append(showUTF8Action);
+            connect(showUTF8Action, &QAction::triggered, [=](){
+                QByteArray utf8Bytes;
+                foreach(uint64_t number, unmberList) {
+                    if(number == 0) {
+                        utf8Bytes.append('0');
+                        continue;
+                    }
+                    if(utf8BytesOrderMsB) {
+                        for(int i = 0; i < 8; i++) {
+                            uint8_t byte = (uint8_t)(number>>(8*(7-i)));
+                            if(byte == 0) {
+                                continue;
+                            }
+                            utf8Bytes.append(byte);
+                        }
+                    } else {
+                        for(int i = 0; i < 8; i++) {
+                            uint8_t byte = (uint8_t)(number>>(8*i));
+                            if(byte == 0) {
+                                continue;
+                            }
+                            utf8Bytes.append(byte);
+                        }
+                    }
+                }
+                QMessageBox::information(parentMenu, tr("Show UTF-8"), QString::fromUtf8(utf8Bytes));
             });
         }
     }
