@@ -4,7 +4,7 @@
 #include "plugininterface.h"
 
 #define PLUGIN_NAME    "Character Code"
-#define PLUGIN_VERSION "0.0.3"
+#define PLUGIN_VERSION "0.0.4"
 #define PLUGIN_WEBSITE "https://github.com/QuardCRT-platform/plugin-CharacterCode"
 
 class CharacterCode : public PluginInterface
