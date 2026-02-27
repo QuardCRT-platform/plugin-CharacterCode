@@ -38,7 +38,7 @@ jobs:
           make
 
       - name: Upload build asserts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: libcharactercode
           path: |
@@ -71,7 +71,7 @@ jobs:
           cp libcharactercode.dylib libcharactercode.arm64.dylib
 
       - name: Upload build asserts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: libcharactercode_arm64
           path: |
