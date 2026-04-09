@@ -24,14 +24,15 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           arch: win64_mingw
-          version: '6.5.3'
-          aqtversion: ==3.1.7
+          version: '6.9.3'
+          aqtversion: ==3.3.0
+          tools: 'tools_mingw1310'
 
       - name: Build all
         run: |
           lrelease *.pro
           qmake -spec win32-g++
-          mingw32-make -j8
+          mingw32-make -j1
 
       - name: Upload build asserts
         uses: actions/upload-artifact@v7
@@ -40,7 +41,7 @@ jobs:
           path: |
             ./release/charactercode.dll
 
-  windows_msvc2019:
+  windows_msvc2022:
     runs-on: windows-2022
 
     steps:
@@ -51,15 +52,19 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          arch: 'win64_msvc2019_64'
-          version: '6.5.3'
-          aqtversion: '==3.1.7'
+          arch: 'win64_msvc2022_64'
+          version: '6.9.3'
+          aqtversion: ==3.3.0
+
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.20.0'
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-          toolset: 14.29
 
       - name: Build all
         run: |
