@@ -3,6 +3,8 @@ name: macos
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'V*.*.*'
     paths-ignore:
       - 'README.md'
   pull_request:

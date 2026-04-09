@@ -1,0 +1,94 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'V*.*.*'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish_release_assets:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Validate semantic version tag
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if [[ ! "$tag" =~ ^V[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag '$tag' is not a valid semantic version in Vx.x.x format"
+            exit 1
+          fi
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+
+      - name: Download linux artifact
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: linux.yml
+          commit: ${{ github.sha }}
+          workflow_conclusion: success
+          name: artifact
+          path: dist/linux
+          if_no_artifact_found: fail
+
+      - name: Download macOS Intel artifact
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: macos.yml
+          commit: ${{ github.sha }}
+          workflow_conclusion: success
+          name: libcharactercode
+          path: dist/macos-intel
+          if_no_artifact_found: fail
+
+      - name: Download macOS arm64 artifact
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: macos.yml
+          commit: ${{ github.sha }}
+          workflow_conclusion: success
+          name: libcharactercode_arm64
+          path: dist/macos-arm64
+          if_no_artifact_found: fail
+
+      - name: Download windows MinGW artifact
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: windows.yml
+          commit: ${{ github.sha }}
+          workflow_conclusion: success
+          name: libcharactercode_mingw
+          path: dist/windows-mingw
+          if_no_artifact_found: fail
+
+      - name: Download windows MSVC artifact
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: windows.yml
+          commit: ${{ github.sha }}
+          workflow_conclusion: success
+          name: libcharactercode_msvc
+          path: dist/windows-msvc
+          if_no_artifact_found: fail
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/linux/libcharactercode.so
+            dist/macos-intel/libcharactercode.dylib
+            dist/macos-arm64/libcharactercode.arm64.dylib
+            dist/windows-mingw/charactercode.dll
+            dist/windows-msvc/charactercode.msvc.dll
+          fail_on_unmatched_files: true
