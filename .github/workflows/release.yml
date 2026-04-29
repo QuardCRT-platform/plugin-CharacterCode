@@ -28,7 +28,7 @@ jobs:
           generate_release_notes: true
 
       - name: Download linux artifact
-        uses: dawidd6/action-download-artifact@v20
+        uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: linux.yml
@@ -39,7 +39,7 @@ jobs:
           if_no_artifact_found: fail
 
       - name: Download macOS Intel artifact
-        uses: dawidd6/action-download-artifact@v20
+        uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: macos.yml
@@ -50,7 +50,7 @@ jobs:
           if_no_artifact_found: fail
 
       - name: Download macOS arm64 artifact
-        uses: dawidd6/action-download-artifact@v20
+        uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: macos.yml
@@ -61,7 +61,7 @@ jobs:
           if_no_artifact_found: fail
 
       - name: Download windows MinGW artifact
-        uses: dawidd6/action-download-artifact@v20
+        uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: windows.yml
@@ -72,7 +72,7 @@ jobs:
           if_no_artifact_found: fail
 
       - name: Download windows MSVC artifact
-        uses: dawidd6/action-download-artifact@v20
+        uses: dawidd6/action-download-artifact@v21
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: windows.yml
